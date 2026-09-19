@@ -73,6 +73,7 @@ def test_get_snapshot_aggregates_available_sources(monkeypatch):
             ]
         },
     }
+    windows = []
 
     def fake_get(url, **kwargs):
         path = url.replace("https://api.adanos.org", "")
@@ -81,6 +82,7 @@ def test_get_snapshot_aggregates_available_sources(monkeypatch):
         from_date = date.fromisoformat(kwargs["params"]["from"])
         to_date = date.fromisoformat(kwargs["params"]["to"])
         assert (to_date - from_date).days == 6
+        windows.append((kwargs["params"]["from"], kwargs["params"]["to"]))
         assert kwargs["headers"]["X-API-Key"] == "test-key"
         return _Response(fixtures[path])
 
@@ -93,6 +95,8 @@ def test_get_snapshot_aggregates_available_sources(monkeypatch):
     assert snapshot["average_buzz"] == 74.0
     assert snapshot["bullish_avg"] == 56.5
     assert snapshot["source_alignment"] == "Bullish alignment"
+    assert len(set(windows)) == 1
+    assert len(windows) == 4
     assert [source["key"] for source in snapshot["sources"]] == [
         "reddit",
         "x",

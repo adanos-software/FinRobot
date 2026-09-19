@@ -59,11 +59,12 @@ class RetailSentimentClient:
     def get_snapshot(self, ticker: str, days_back: int = 7) -> Dict[str, Any]:
         """Return a compact retail sentiment snapshot across public sources."""
         normalized_ticker = ticker.strip().upper().replace("$", "")
+        date_window = self._date_window(days_back)
         sources: List[Dict[str, Any]] = []
 
         for spec in self.PLATFORM_SPECS:
             try:
-                row = self._fetch_source_row(spec, normalized_ticker, days_back)
+                row = self._fetch_source_row(spec, normalized_ticker, date_window)
             except Exception as exc:
                 print(
                     f"Warning: Failed to fetch retail sentiment for {normalized_ticker} "
@@ -95,11 +96,11 @@ class RetailSentimentClient:
         self,
         spec: Dict[str, str],
         ticker: str,
-        days_back: int,
+        date_window: Dict[str, str],
     ) -> Optional[Dict[str, Any]]:
         response = requests.get(
             f"{self.base_url}{spec['path']}",
-            params={"tickers": ticker, **self._date_window(days_back)},
+            params={"tickers": ticker, **date_window},
             headers={"X-API-Key": self.api_key},
             timeout=self.timeout,
         )
